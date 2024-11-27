@@ -1,55 +1,149 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 import uuid
-import asyncio
+import torch
+from utils.load_model import load_model
 
 router = APIRouter()
-
-# 딥러닝 모델 로드 - process_task 함수에서 활용 예정
-# model = load_model()
 
 # 임시 저장소 (Redis 또는 DB로 대체 가능)
 tasks = {}
 
-class URLRequest(BaseModel):
-    URL: str
+class ReviewCheckRequest(BaseModel):
+    requestId: str
+    blogUrl: str
 
-@router.post("/submit")
-async def submit_request(request: URLRequest):
-    # 작업 ID 생성
-    # task_id = str(uuid.uuid4())
-    task_id = "1"
+@router.post("/review_check")
+async def submit_request(request: ReviewCheckRequest):
+    # 작업 ID로 받은 requestID 사용
+    task_id = request.requestId
+
+    # 더미 데이터 초기화
+    # task_id = "1"
     tasks[task_id] = {"status": "PENDING", "result": None}
 
     # 비동기 작업 처리 시뮬레이션
-    process_task(task_id)
+    await process_and_predict_from_url(task_id, request.blogUrl)
 
-    return {"task_id": task_id, "message": "Request received", "estimated_time": "60 seconds"}
+    return {
+        "message": "Request received. Processing started.",
+        "requestId": task_id
+    }
 
-def process_task(task_id: str):
-    # URL을 통한 전처리 및 모델 실행
+from fastapi import HTTPException
+from utils.crawling import crawl_url
+from utils.preprocess import TextProcessor
+
+# 작업 처리 함수 : 비동기로 정의 (async)
+# 비동기 함수 정의와 호출 위치 수정 + 기능 별 함수 분해
+# 예측 함수
+def predict_text(model, processed_text, tokenizer, max_len=64):
+    """
+    전처리된 텍스트를 입력으로 받아 모델이 분류 결과를 반환하도록 합니다.
+
+    Args:
+        model: 로드된 BERTClassifier 모델.
+        processed_text (str): 전처리된 본문 텍스트.
+        tokenizer: KoBERT 토크나이저.
+        max_len (int): 최대 입력 길이.
+
+    Returns:
+        label (int): 분류 결과 (예: 0 또는 1).
+        probabilities (list): 각 클래스에 대한 확률.
+    """
+    # 텍스트 토큰화 및 텐서 변환
+    encoded_dict = tokenizer(
+        processed_text,
+        max_length=max_len,
+        padding='max_length',
+        truncation=True,
+        return_tensors='pt'
+    )
+
+    # 입력 데이터 생성
+    input_ids = encoded_dict['input_ids']
+    attention_mask = encoded_dict['attention_mask']
+    token_type_ids = encoded_dict['token_type_ids']
+
+    # 모델 입력
+    with torch.no_grad():
+        outputs = model(input_ids, attention_mask.sum(dim=1), token_type_ids)
+
+    # 소프트맥스 확률 계산
+    probabilities = torch.softmax(outputs, dim=1).cpu().numpy()[0]
+    label = probabilities.argmax()  # 가장 높은 확률을 가진 클래스 선택
+
+    return label, probabilities
+
+'''
+함수 호출은 작업이 완료될 때까지 기다림
+작업이 진행되는 동안(url이 처리되는 동안), 다른 요청이나 작업 처리 가능
+=> 서버가 동시에 여러 클라이언트의 요청을 효율적으로 처리 가능!
+'''
+async def process_and_predict_from_url(task_id: str, url: str):
+    """
+    사용자 입력 URL의 본문 데이터를 크롤링, 전처리하고 모델 예측 수행.
+
+    Args:
+        task_id (str): 작업 ID
+        url (str): 크롤링할 URL
+
+    Returns:
+        None
+    """
     try:
-        # tasks[task_id]["status"] = "IN_PROGRESS"
-        # await asyncio.sleep(3)  # 작업 처리 시간 시뮬레이션
+        tasks[task_id]["status"] = "IN_PROGRESS"
 
-        # URL 기반 데이터 추출 및 모델로 처리 과정 (수정 예정)
-        # 더미 데이터
+        # 1. 크롤링 수행
+        raw_text = await crawl_url(url)
+        if not raw_text:
+            tasks[task_id]["status"] = "FAILED"
+            tasks[task_id]["result"] = "크롤링된 본문 데이터가 비어있습니다."
+            return
+
+        # 2. 전처리 수행
+        processor = TextProcessor()
+        processed_text = processor.process_text(raw_text)
+
+        if not processed_text.strip():
+            tasks[task_id]["status"] = "FAILED"
+            tasks[task_id]["result"] = "전처리된 본문 데이터가 비어있습니다."
+            return
+
+        # (수정사항 1) processed_text를 paragraph에 잘라서 넣기 (전처리)
+
+
+
+        # 3.  모델 로드 및 예측
+        model = load_model()  # 로드된 모델 사용
+
+        # 모델 평가 모드 전환
+        model.eval()
+
+
+        # (수정사항 2) paragraph에 저장된 요소들 각각에 대해서 predict_text 수행
+
+
+        predicted_class, probability = predict_text(model, processed_text)
+
+
+        # (수정사항 3) paragraph에 저장된 요소들 각각에 대한 predicted_class, probability를 활용해 soft_voting 수행
+
+        # 작업 완료 상태 업데이트
         tasks[task_id]["status"] = "COMPLETED"
         tasks[task_id]["result"] = {
-            "review_score": 30,
-            "summary_title": "판교역 돈까스 맛집 추천, 직장인들 점심 해결!",
-            "summary_content": "판교역 근처 돈까스 가게에 다녀왔어요. 고기는 부드럽고 튀김은 바삭하다! 맛있는 돈까스 찾는 분들께 강추 !",
-            "reason": "블로그 글 하단에 광고 배너가 있어요."
+            "processed_text": processed_text,
+            "prediction": predicted_class,
         }
-
-        # # 상태 완료로 변경
-        # tasks[task_id]["status"] = "COMPLETED"
 
     except Exception as e:
         tasks[task_id]["status"] = "FAILED"
         tasks[task_id]["result"] = str(e)
 
 
+'''
+실제 비동기로 작업 처리해주는 process_task 함수 부분
+'''
 # async def process_task(task_id: str, url: str):
 #     # URL을 통한 전처리 및 모델 실행
 #     try:
@@ -92,3 +186,31 @@ async def get_result(task_id: str):
         return {"status": "IN_PROGRESS", "message": "Result is not ready yet"}
     else:
         return {"status": "FAILED", "message": "Task processing failed"}
+
+
+
+'''
+더미 데이터로 돌아가는 process_task 함수 코드
+'''
+# def process_task(task_id: str):
+#     # URL을 통한 전처리 및 모델 실행
+#     try:
+#         # tasks[task_id]["status"] = "IN_PROGRESS"
+#         # await asyncio.sleep(3)  # 작업 처리 시간 시뮬레이션
+#
+#         # URL 기반 데이터 추출 및 모델로 처리 과정 (수정 예정)
+#         # 더미 데이터
+#         tasks[task_id]["status"] = "COMPLETED"
+#         tasks[task_id]["result"] = {
+#             "review_score": 30,
+#             "summary_title": "판교역 돈까스 맛집 추천, 직장인들 점심 해결!",
+#             "summary_content": "판교역 근처 돈까스 가게에 다녀왔어요. 고기는 부드럽고 튀김은 바삭하다! 맛있는 돈까스 찾는 분들께 강추 !",
+#             "reason": "블로그 글 하단에 광고 배너가 있어요."
+#         }
+#
+#         # # 상태 완료로 변경
+#         # tasks[task_id]["status"] = "COMPLETED"
+#
+#     except Exception as e:
+#         tasks[task_id]["status"] = "FAILED"
+#         tasks[task_id]["result"] = str(e)
