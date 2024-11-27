@@ -1,13 +1,27 @@
+import asyncio
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-import uuid
 import torch
-from utils.load_model import load_model
+from utils.load_model import load_model_and_tokenizer
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 router = APIRouter()
 
 # 임시 저장소 (Redis 또는 DB로 대체 가능)
 tasks = {}
+
+# url: 네이버 블로그 링크
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # 헤드리스 모드
+chrome_options.add_argument("--no-sandbox")  # 샌드박스 모드 비활성화
+chrome_options.add_argument("--disable-dev-shm-usage")  # /dev/shm 사용 안 함 (Docker에서 메모리 문제 해결)
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 class ReviewCheckRequest(BaseModel):
     requestId: str
@@ -31,8 +45,9 @@ async def submit_request(request: ReviewCheckRequest):
     }
 
 from fastapi import HTTPException
-from utils.crawling import crawl_url
-from utils.preprocess import TextProcessor
+from utils.crawling import crawl_url, parse_html
+from utils.preprocess import TextProcessor, split_text_into_paragraphs
+
 
 # 작업 처리 함수 : 비동기로 정의 (async)
 # 비동기 함수 정의와 호출 위치 수정 + 기능 별 함수 분해
@@ -95,7 +110,15 @@ async def process_and_predict_from_url(task_id: str, url: str):
         tasks[task_id]["status"] = "IN_PROGRESS"
 
         # 1. 크롤링 수행
-        raw_text = await crawl_url(url)
+        soup = parse_html(driver, url)
+        if soup is None:
+            tasks[task_id]["status"] = "FAILED"
+            tasks[task_id]["result"] = "HTML 파싱에 실패했습니다."
+            return
+
+        raw_text = crawl_url(soup)
+        print('raw text:', raw_text)
+
         if not raw_text:
             tasks[task_id]["status"] = "FAILED"
             tasks[task_id]["result"] = "크롤링된 본문 데이터가 비어있습니다."
@@ -104,25 +127,26 @@ async def process_and_predict_from_url(task_id: str, url: str):
         # 2. 전처리 수행
         processor = TextProcessor()
         processed_text = processor.process_text(raw_text)
+        print("\n\n!!!!! processed_text:", processed_text)
 
         if not processed_text.strip():
             tasks[task_id]["status"] = "FAILED"
             tasks[task_id]["result"] = "전처리된 본문 데이터가 비어있습니다."
             return
 
-        # (수정사항 1) processed_text를 paragraph에 잘라서 넣기 (전처리)
+        # 3. 텍스트를 문단으로 나누기
+        model, tokenizer = load_model_and_tokenizer()
+        print(f"\n\n Tokenizer 확인: {tokenizer}")
 
+        paragraphs = split_text_into_paragraphs(processed_text, tokenizer)
 
+        # 테스트용 출력
+        print(f"\n\n @@@ 분리된 문단: {paragraphs}")
 
         # 3.  모델 로드 및 예측
-        model = load_model()  # 로드된 모델 사용
-
         # 모델 평가 모드 전환
         model.eval()
-
-
         # (수정사항 2) paragraph에 저장된 요소들 각각에 대해서 predict_text 수행
-
 
         predicted_class, probability = predict_text(model, processed_text)
 
@@ -187,7 +211,19 @@ async def get_result(task_id: str):
     else:
         return {"status": "FAILED", "message": "Task processing failed"}
 
+if __name__ == "__main__":
+    # 테스트용 task_id와 url
+    task_id = "123e4567-e89b-12d3-a456-426614174000"
+    url = "https://blog.naver.com/tkdtkdgns1/223604228666"
 
+    # tasks 초기화
+    tasks[task_id] = {"status": "PENDING", "result": None}
+
+    # asyncio.run으로 비동기 함수 실행
+    asyncio.run(process_and_predict_from_url(task_id, url))
+
+    # 결과 확인
+    print(tasks[task_id])
 
 '''
 더미 데이터로 돌아가는 process_task 함수 코드

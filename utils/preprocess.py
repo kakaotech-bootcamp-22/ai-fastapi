@@ -44,38 +44,28 @@ class TextProcessor:
             logging.error(f"전처리 중 오류 발생: {str(e)}")
             return ""
 
+# 텍스트를 256개 토큰 단위로 완전한 문장 단위로 나누는 함수 정의
+def split_text_into_paragraphs(text, tokenizer, max_length=256):
+    sentences = text.split("[SEP]\n")[:-1]  # 마지막 빈 요소 제거
+    paragraphs = []
+    paragraph_sentences = []  # 현재 문단에 포함될 문장들
+    paragraph_length = 0  # 현재 문단의 토큰 개수
 
+    for sentence in sentences:
+        sentence_tokens = tokenizer.tokenize(sentence)
+        sentence_length = len(sentence_tokens)  # 현재 문장의 토큰 개수
 
+        # 현재 문장을 추가했을 때 max_length를 초과하면, 현재 문단을 완성하여 paragraphs에 추가
+        if paragraph_length + sentence_length > max_length:
+            paragraphs.append(" ".join(paragraph_sentences))
+            paragraph_sentences = [sentence]  # 새로운 문단을 현재 문장으로 시작
+            paragraph_length = sentence_length  # 새로운 문단의 토큰 길이 초기화
+        else:
+            # 현재 문장을 문단에 추가
+            paragraph_sentences.append(sentence)
+            paragraph_length += sentence_length + 1  # 문장 간의 공백을 고려해 +1 추가
 
-# def preprocess_input(tokenizer, input_text, max_len=256):
-#     """
-#     입력 텍스트를 모델이 처리할 수 있는 형식으로 변환합니다.
-#     Args:
-#         tokenizer: KoBERT Tokenizer.
-#         input_text (str): 사용자 입력 텍스트.
-#         max_len (int): 최대 시퀀스 길이.
-#     Returns:
-#         dict: 토큰화된 텐서 데이터.
-#     """
-#     encoded_input = tokenizer(
-#         input_text,
-#         return_tensors="pt",
-#         padding="max_length",
-#         truncation=True,
-#         max_length=max_len
-#     )
-#     return encoded_input
-
-
-
-
-# import numpy as np
-# import torch
-#
-# # 모델 입력 형식에 맞게 전처리, chunking 등의 전처리 수행 함수
-# def preprocess_input(input_data):
-#     """
-#     입력 데이터를 PyTorch Tensor로 변환.
-#     """
-#     input_array = np.array(input_data, dtype=np.float32)  # NumPy 배열로 변환
-#     return torch.tensor(input_array).unsqueeze(0)  # Batch 차원을 추가
+    # 마지막 문단이 비어 있지 않으면 추가
+    if paragraph_sentences:
+        paragraphs.append(" ".join(paragraph_sentences))
+    return paragraphs

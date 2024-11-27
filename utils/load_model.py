@@ -1,6 +1,8 @@
 import torch
-from transformers import BertModel
+from transformers import BertModel, XLNetTokenizer
 import torch.nn as nn
+
+import os
 
 # 모델 클래스 정의
 # 리팩토링 필요
@@ -59,24 +61,56 @@ def load_model_from_checkpoint(checkpoint_path, bert_model_class):
     model = bert_model_class(dr_rate=0.5).to(device)
 
     # 체크포인트 로드
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    '''
+    torch.load 함수는 기본적으로 모델 가중치만 로드하려고 시도한다
+    weights_only=True -> 체크포인트 파일이 단순히 모델 가중치만 포함한다면, weights_only=True를 사용할 수 있다
+    (그게 보안면에서 더 안전함)
+    
+    지금 파일은 가중치만 포함하고 있는 파일이 아니라서
+    '''
+    checkpoint = torch.load(checkpoint_path, map_location=device)  # weights_only=True -> 체크포인트 파일이 단순히 모델 가중치만 포함한다면, weights_only=True를 사용할 수 있다
 
     # 모델 상태 복원 : 로드된 체크포인트에서 해당 모델의 가중치와 상태 복원
     model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
 
     print(f"모델 로드 완료: {checkpoint_path}")
-    print(f"에포크: {checkpoint['epoch']}, 검증 정확도: {checkpoint['val_acc']}")
+    print(f"에포크: {checkpoint['epochs']}, 검증 정확도: {checkpoint['val_acc']}")
 
     return model
 
-# 로드 함수 예시
-def load_model():
-    # 사용할 최종 모델 .tar 파일명 수정하는 부분
-    checkpoint_path = "models/checkpoint_epoch_36.tar"  # .tar 파일 경로
+from transformers import XLNetTokenizer  # BertTokenizer,
+
+# from kobert_tokenizer import KoBERTTokenizer
+
+def load_model_and_tokenizer():
+    # checkpoint_path = os.path.join(os.getcwd(), "models/checkpoint_epoch_36.tar")
+
+    # 모델 경로 설정
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 상위 디렉토리로 이동
+    checkpoint_path = os.path.join(base_dir, "models", "checkpoint_epoch_36.tar")
+
     bert = BertModel.from_pretrained("skt/kobert-base-v1")  # BERT 모델 로드
     model = load_model_from_checkpoint(checkpoint_path, lambda dr_rate: BERTClassifier(bert, dr_rate=dr_rate))
-    return model
+    tokenizer = XLNetTokenizer.from_pretrained("skt/kobert-base-v1")  # KoBERT 토크나이저 로드
+
+    return model, tokenizer
+
+
+if __name__ == "__main__":
+    model, tokenizer = load_model_and_tokenizer()
+
+    print(model, tokenizer)
+
+
+
+# # 로드 함수 예시
+# def load_model():
+#     # 사용할 최종 모델 .tar 파일명 수정하는 부분
+#     checkpoint_path = os.path.join(os.getcwd(), "models/checkpoint_epoch_36.tar")
+#
+#     bert = BertModel.from_pretrained("skt/kobert-base-v1")  # BERT 모델 로드
+#     model = load_model_from_checkpoint(checkpoint_path, lambda dr_rate: BERTClassifier(bert, dr_rate=dr_rate))
+#     return model
 
 
 # import os
