@@ -10,6 +10,8 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 
+from utils.soft_voting import soft_voting
+
 router = APIRouter()
 
 # 임시 저장소 (Redis 또는 DB로 대체 가능)
@@ -163,13 +165,12 @@ async def process_and_predict_from_url(task_id: str, url: str):
         print(f"Paragraph probabilities: {paragraph_probabilities}")
 
         # (수정사항 3) paragraph에 저장된 요소들 각각에 대한 predicted_class, probability를 활용해 soft_voting 수행
+        voting_results = soft_voting(paragraph_probabilities)
+        print(f"Soft Voting Results - Real: {voting_results['real_probability']}, Fake: {voting_results['fake_probability']}")
 
         # 작업 완료 상태 업데이트
         tasks[task_id]["status"] = "COMPLETED"
-        # tasks[task_id]["result"] = {
-        #     "processed_text": processed_text,
-        #     "prediction": predicted_class,
-        # }
+        tasks[task_id]["result"] = { "real_probability": voting_results['real_probability'], "fake_probability": voting_results['fake_probability'] }
 
     except Exception as e:
         tasks[task_id]["status"] = "FAILED"
