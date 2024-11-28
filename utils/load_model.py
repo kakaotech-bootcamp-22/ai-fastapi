@@ -15,36 +15,42 @@ class BERTClassifier(nn.Module):
         if dr_rate:
             self.dropout = nn.Dropout(p=dr_rate)
 
+    # def gen_attention_mask(self, token_ids, valid_length):
+    #     attention_mask = torch.zeros_like(token_ids)
+    #     for i, v in enumerate(valid_length):
+    #         attention_mask[i][:v] = 1
+    #     return attention_mask
+
     def gen_attention_mask(self, token_ids, valid_length):
+        # valid_length가 텐서인 경우 정수로 변환
+        if isinstance(valid_length, torch.Tensor):
+            valid_length = valid_length.cpu().tolist()  # 텐서를 리스트로 변환
+
         attention_mask = torch.zeros_like(token_ids)
         for i, v in enumerate(valid_length):
-            attention_mask[i][:v] = 1
+            attention_mask[i][:int(v)] = 1  # 정수로 변환 후 사용
         return attention_mask
 
     def forward(self, token_ids, valid_length, segment_ids):
         attention_mask = self.gen_attention_mask(token_ids, valid_length)
 
-        # 디버깅 코드 추가: 입력값과 임베딩 출력값의 모양 확인
-        # print(f"token_ids shape: {token_ids.shape}")
-        # print(f"segment_ids shape: {segment_ids.shape}")
-        # print(f"attention_mask shape: {attention_mask.shape}")
-
-        _, pooler = self.bert(
+        # BertModel의 출력
+        bert_output = self.bert(
             input_ids=token_ids,
             token_type_ids=segment_ids.long(),
             attention_mask=attention_mask.float().to(token_ids.device)
         )
 
-        # BERT 출력값의 모양 확인
-        # print(f"BERT output shape: {_.shape}")
-        # print(f"BERT pooler shape: {pooler.shape}")
+        # bert_output의 두 번째 출력값인 pooler_output을 사용
+        pooler_output = bert_output[1]
 
         if self.dr_rate:
-            out = self.dropout(pooler)
+            out = self.dropout(pooler_output)
         else:
-            out = pooler
+            out = pooler_output
 
         return self.classifier(out)
+
 
 def load_model_from_checkpoint(checkpoint_path, bert_model_class):
     """

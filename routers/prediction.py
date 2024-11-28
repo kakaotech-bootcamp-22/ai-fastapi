@@ -53,42 +53,42 @@ from utils.preprocess import TextProcessor, split_text_into_paragraphs
 # 비동기 함수 정의와 호출 위치 수정 + 기능 별 함수 분해
 # 예측 함수
 def predict_text(model, processed_text, tokenizer, max_len=64):
-    """
-    전처리된 텍스트를 입력으로 받아 모델이 분류 결과를 반환하도록 합니다.
-
-    Args:
-        model: 로드된 BERTClassifier 모델.
-        processed_text (str): 전처리된 본문 텍스트.
-        tokenizer: KoBERT 토크나이저.
-        max_len (int): 최대 입력 길이.
-
-    Returns:
-        label (int): 분류 결과 (예: 0 또는 1).
-        probabilities (list): 각 클래스에 대한 확률.
-    """
-    # 텍스트 토큰화 및 텐서 변환
     encoded_dict = tokenizer(
-        processed_text,
+        [processed_text],
         max_length=max_len,
         padding='max_length',
         truncation=True,
         return_tensors='pt'
     )
 
-    # 입력 데이터 생성
     input_ids = encoded_dict['input_ids']
     attention_mask = encoded_dict['attention_mask']
-    token_type_ids = encoded_dict['token_type_ids']
+
+    # valid_length 계산 (attention_mask의 합)
+    valid_length = attention_mask.sum(dim=1)
+
+    # segment_ids (token_type_ids) 생성 (모두 0으로)
+    segment_ids = torch.zeros_like(input_ids)
 
     # 모델 입력
     with torch.no_grad():
-        outputs = model(input_ids, attention_mask.sum(dim=1), token_type_ids)
+        outputs = model(
+            token_ids=input_ids,
+            valid_length=valid_length,
+            segment_ids=segment_ids
+        )
 
-    # 소프트맥스 확률 계산
-    probabilities = torch.softmax(outputs, dim=1).cpu().numpy()[0]
-    label = probabilities.argmax()  # 가장 높은 확률을 가진 클래스 선택
+    probabilities = torch.softmax(outputs, dim=1).cpu().numpy()
+    print(f"Softmax probabilities: {probabilities}")
 
-    return label, probabilities
+    real_prob = probabilities[0][0]
+    fake_prob = probabilities[0][1]
+    print(real_prob, fake_prob)
+
+    return real_prob, fake_prob
+
+
+
 
 '''
 함수 호출은 작업이 완료될 때까지 기다림
@@ -146,19 +146,30 @@ async def process_and_predict_from_url(task_id: str, url: str):
         # 3.  모델 로드 및 예측
         # 모델 평가 모드 전환
         model.eval()
+
         # (수정사항 2) paragraph에 저장된 요소들 각각에 대해서 predict_text 수행
 
-        predicted_class, probability = predict_text(model, processed_text)
+        # 각 문단의 확률값 저장
+        paragraph_probabilities = []
 
+        print('문단 개수 : ', len(paragraphs))
+
+        for paragraph in paragraphs:
+            real_prob, fake_prob = predict_text(model, paragraph, tokenizer)
+            paragraph_probabilities.append([real_prob, fake_prob])
+            print(f"Paragraph: {paragraph}")
+
+        # 각 문단별 확률 확인
+        print(f"Paragraph probabilities: {paragraph_probabilities}")
 
         # (수정사항 3) paragraph에 저장된 요소들 각각에 대한 predicted_class, probability를 활용해 soft_voting 수행
 
         # 작업 완료 상태 업데이트
         tasks[task_id]["status"] = "COMPLETED"
-        tasks[task_id]["result"] = {
-            "processed_text": processed_text,
-            "prediction": predicted_class,
-        }
+        # tasks[task_id]["result"] = {
+        #     "processed_text": processed_text,
+        #     "prediction": predicted_class,
+        # }
 
     except Exception as e:
         tasks[task_id]["status"] = "FAILED"
@@ -225,9 +236,29 @@ if __name__ == "__main__":
     # 결과 확인
     print(tasks[task_id])
 
+    # # 테스트용 task_id와 url
+    # task_id = "123e4567-e89b-12d3-a456-426614174000"
+    # url = "https://blog.naver.com/tkdtkdgns1/223604228666"
+    #
+    # # tasks 초기화
+    # tasks[task_id] = {"status": "PENDING", "result": None}
+    #
+    # # # asyncio.run으로 비동기 함수 실행
+    # # asyncio.run(process_and_predict_from_url(task_id, url))
+    #
+    # model, tokenizer = load_model_and_tokenizer()
+    # processed_text = "판교 맛집 중국집 가족 모임 룸 식당 판교 맛집 중국집 가족 모임 룸 식당 팔복 판교 안녕하세요 오늘은 아주 오랜만에 판교 맛집을 여러분들에게 소개해 드리도록 하겠습니다.  이번에 새로 오픈한 신상 판교 맛집 소식을 듣고 저도 어제 휴일을 맞이하여 배우자와 함께 다녀 왔는데 정말 맛있는 중식당 중국집이었습니다.  개별 프라이빗 룸 마련이 잘 되어 있어서 프라이빗 한  식사를 할 수 있어서 좋았고 무엇보다 정말 너무나도 맛있는 요리들을 맛볼 수 있어서 정말 행복했던 판교 맛집 팔복 판교입니다.  주차도 편하게 가능했고 정말 처음 보는 비주얼의 눈도 호강하고 입도 호강하고 온 여태까지 가봤던 중국집 중 손에 꼽는 중국집인데요!  요즘 흑백 요리사에서 중화요리 많이 봤었어서 먹고 싶어서 다녀왔는데 정말 너무나도 만족하고 다 녀왔던 팔 복 판교 솔직 후기 네이버 블로그 포스팅 지금 바로 시작해 보도록 하겠습니다!! "
+    #
+    # predict_text(model, processed_text, tokenizer, max_len=64)
+    #
+    #
+    # # 결과 확인
+    # print(tasks[task_id])
+
 '''
 더미 데이터로 돌아가는 process_task 함수 코드
 '''
+
 # def process_task(task_id: str):
 #     # URL을 통한 전처리 및 모델 실행
 #     try:
