@@ -1,8 +1,6 @@
 import torch
-from transformers import BertModel, XLNetTokenizer
 import torch.nn as nn
 
-import os
 
 # 모델 클래스 정의
 # 리팩토링 필요
@@ -84,28 +82,11 @@ def load_model_from_checkpoint(checkpoint_path, bert_model_class):
 
     return model
 
-from transformers import XLNetTokenizer  # BertTokenizer,
 
-# from kobert_tokenizer import KoBERTTokenizer
-
-def load_model_and_tokenizer():
-    # checkpoint_path = os.path.join(os.getcwd(), "models/checkpoint_epoch_36.tar")
-
-    # 모델 경로 설정
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 상위 디렉토리로 이동
-    checkpoint_path = os.path.join(base_dir, "models", "checkpoint_epoch_36.tar")
-
-    bert = BertModel.from_pretrained("skt/kobert-base-v1")  # BERT 모델 로드
-    model = load_model_from_checkpoint(checkpoint_path, lambda dr_rate: BERTClassifier(bert, dr_rate=dr_rate))
-    tokenizer = XLNetTokenizer.from_pretrained("skt/kobert-base-v1")  # KoBERT 토크나이저 로드
-
-    return model, tokenizer
-
-
-if __name__ == "__main__":
-    model, tokenizer = load_model_and_tokenizer()
-
-    print(model, tokenizer)
+# if __name__ == "__main__":
+#     model, tokenizer = load_model_and_tokenizer()
+#
+#     print(model, tokenizer)
 
 
 

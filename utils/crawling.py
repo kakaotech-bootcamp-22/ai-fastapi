@@ -1,16 +1,7 @@
-from bs4 import BeautifulSoup
-import requests
 import re
-
 import time
-
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
-
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
 
 def parse_html(driver, url):
     try:
@@ -33,7 +24,7 @@ def parse_html(driver, url):
 
 
 
-# async def crawl_url(soup):
+# async def crawl_url(soup): 비동기로 나중에 수정 -> 테스트 위해서 잠시 빼둠
 def crawl_url(soup):
     """
     BeautifulSoup 객체에서 본문 데이터를 크롤링합니다.
@@ -66,7 +57,7 @@ def crawl_url(soup):
             raise ValueError("본문 텍스트가 비어 있습니다.")
 
         return whole_text
+
     except Exception as e:
         print(f"크롤링 실패: {e}")
         return None
-
