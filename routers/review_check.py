@@ -1,5 +1,8 @@
 import asyncio
+import os
 
+import httpx
+from dotenv import load_dotenv
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -39,66 +42,14 @@ async def submit_request(request: ReviewCheckRequest):
 
     return {"message": "Request received. Processing started.", "requestId": task_id}
 
-@router.post("/result")
-async def send_completed_results():
-    for task_id, task in tasks.items():
-        if task["status"] == "COMPLETED":
-            backend_url = "https://your-backend-url.com/api/receive-result"  # URL 수정
-
-            # payload 아직 미완
-            payload = {
-                "requestId": task_id,
-                "blogUrl": task["result"].get("blogUrl", "Unknown"),
-                "summaryTitle": "Analysis Complete",
-                "summaryText": task["result"].get("summaryText", "Analysis completed successfully."),
-                "score": task["result"].get("review_score", 0),
-                "evidence": task["result"].get("reason", "No evidence found.")
-            }
-
-            try:
-                # Send the POST request to the backend
-                import requests
-                response = requests.post(backend_url, json=payload)
-
-                # Check if the request was successful
-                if response.status_code == 200:
-                    # Mark the task as sent to avoid duplicate sending
-                    task["status"] = "SENT"
-                    print(f"Task {task_id} sent successfully.")
-                elif response.status_code == 400:
-                    print(f"Task {task_id} failed: 400 Bad Request - Missing required data. Response: {response.text}")
-
-                elif response.status_code == 404:
-                    print(f"Task {task_id} failed: 404 Not Found - Request ID not found on the backend.")
-
-                elif response.status_code == 409:
-                    print(f"Task {task_id} failed: 409 Conflict - Result already processed on the backend.")
-
-                elif response.status_code == 500:
-                    print(f"Task {task_id} failed: 500 Internal Server Error. Response: {response.text}")
-
-                else:
-                    print(f"Task {task_id} failed with unexpected status code {response.status_code}: {response.text}")
-
-            except requests.exceptions.RequestException as e:
-                print(f"Error sending task {task_id}: {str(e)}")
-
-    return {"message": "Processed all completed tasks."}
-
 
 if __name__ == "__main__":
-    # 테스트용 task_id와 url
+    from utils.shared import tasks
+
+    # 더미 데이터 생성
     task_id = "123e4567-e89b-12d3-a456-426614174000"
-    url = "https://blog.naver.com/tkdtkdgns1/223604228666"
-
-    # tasks 초기화
-    tasks[task_id] = {"status": "PENDING", "result": None}
-
-    # asyncio.run으로 비동기 함수 실행
-    asyncio.run(process_and_predict_from_url(task_id, url))
-
     # 결과 확인
-    print(tasks[task_id])
+    # print(tasks[task_id])
 
     # # 테스트용 task_id와 url
     # task_id = "123e4567-e89b-12d3-a456-426614174000"

@@ -10,7 +10,7 @@ Accept: application/json
 
 ###
 
-POST http://127.0.0.1:8000/api/review_check
+POST http://127.0.0.1:8000/review-check
 Content-Type: application/json
 
 {
@@ -19,5 +19,5 @@ Content-Type: application/json
 }
 
 ###
-POST http://127.0.0.1:8000/api/review_check/result
+POST http://127.0.0.1:8000/review-check/response
 Accept: application/json

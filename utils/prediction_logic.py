@@ -1,5 +1,6 @@
 import asyncio
 
+from utils.task_logic import process_task
 from utils.shared import tasks
 from utils.crawling import parse_html, crawl_url
 from utils.model_utils import load_model_and_tokenizer, predict_text
@@ -86,6 +87,8 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         # 반환값 수정해야 됌. !!
         tasks[task_id]["result"] = { "real_probability": voting_results['real_probability'], "fake_probability": voting_results['fake_probability'] }
 
+        await process_task(task_id)
+
     except Exception as e:
         tasks[task_id]["status"] = "FAILED"
         tasks[task_id]["result"] = str(e)
@@ -100,7 +103,7 @@ if __name__ == "__main__":
     tasks[task_id] = {"status": "PENDING", "result": None}
 
     # asyncio.run으로 비동기 함수 실행
-    asyncio.run(process_and_predict_from_url(task_id, url, driver))
+    # asyncio.run(process_and_predict_from_url(task_id, url, driver))
 
     # 결과 확인
     print(tasks[task_id])
