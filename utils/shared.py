@@ -1,0 +1,2 @@
+# shared.py
+tasks = {}
