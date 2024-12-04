@@ -1,4 +1,7 @@
 import asyncio
+from ssl import Options
+
+from selenium.webdriver.chrome import webdriver
 
 from utils.task_logic import process_task
 from utils.shared import tasks
@@ -6,6 +9,11 @@ from utils.crawling import parse_html, crawl_url
 from utils.model_utils import load_model_and_tokenizer, predict_text
 from utils.preprocess import TextProcessor, split_text_into_paragraphs
 from utils.soft_voting import soft_voting
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 # 비동기 작업 처리 함수 : 전처리부터 soft-voting까지
 '''
@@ -115,13 +123,39 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         tasks[task_id]["result"] = str(e)
 
 
-if __name__ == "__main__":
+# 테스트
+import asyncio
+
+async def main():
+    # Selenium WebDriver 설정
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # 헤드리스 모드
+    chrome_options.add_argument("--no-sandbox")  # 샌드박스 모드 비활성화
+    chrome_options.add_argument("--disable-dev-shm-usage")  # /dev/shm 사용 안 함 (Docker에서 메모리 문제 해결)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
     # 테스트용 task_id와 url
     task_id = "123e4567-e89b-12d3-a456-426614174000"
     url = "https://blog.naver.com/tkdtkdgns1/223604228666"
+    # url = "https://m.blog.naver.com/rose_haus/223058567929"  # 파싱 에러
+    # url = "https://blog.naver.com/till0312/223670391764"
 
     # tasks 초기화
     tasks[task_id] = {"status": "PENDING", "result": None}
 
-    # 결과 확인
-    print(tasks[task_id])
+    try:
+        # process_and_predict_from_url 함수를 await로 호출
+        result = await process_and_predict_from_url(task_id, url, driver)
+
+        # 결과 확인
+        print(tasks[task_id])
+        print('-------')
+        print(result)
+
+    finally:
+        # 드라이버 종료
+        driver.quit()
+
+if __name__ == "__main__":
+    # asyncio.run()을 사용하여 비동기 main 함수 실행
+    asyncio.run(main())

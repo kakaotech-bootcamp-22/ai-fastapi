@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from schemas.review_check import ReviewCheckRequest
 from utils.prediction_logic import process_and_predict_from_url
 
+
 router = APIRouter()
 # 
 # # 임시 저장소 (Redis 또는 DB로 대체 가능)
@@ -22,6 +23,7 @@ driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), opti
 
 @router.post("/")
 async def process_review_request(request: ReviewCheckRequest):
+    from utils.shared import tasks
     # 작업 ID로 받은 requestID 사용
     task_id = request.requestId
     tasks[task_id] = {"status": "PENDING", "result": None}

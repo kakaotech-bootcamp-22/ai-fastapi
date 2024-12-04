@@ -18,7 +18,10 @@ async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=data)
             response.raise_for_status()
-            return response.json()
+
+            # 테스트
+            return data
+            # return response.json()
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"HTTP error: {str(e)}")
     except httpx.RequestError as e:
@@ -37,27 +40,26 @@ async def process_task(task_id: str):
         "requestId": task_id,
         "blogUrl": task.get("result").get("blogUrl", "Unknown"),
         "summaryText": task.get("result").get("summaryText"),
-        "score": task.get("result").get("review_score"),
-        "evidence": task.get("result").get("reason")
+        "score": task.get("result").get("score"),
+        "evidence": task.get("result").get("evidence")
     }
 
-    # 테스트 코드
-    return payload
+    # # 테스트 코드
+    # return payload
 
     # 실제로 실행 시에는 위에 테스트 코드 지우고 아래 주석 풀기!!
-    # try:
-    #     # POST 요청 전송
-    #     response = await send_post_request(BACKEND_URL, payload)
-    #     print(f"Backend response: {response}")
-    #
-    #     # 전송 후 상태 업데이트
-    #     task["status"] = "SENT"
-    #     return {"status": "SENT", "response": response}
-    # except HTTPException as e:
-    #     # 에러 발생 시 로깅 또는 상태 업데이트
-    #     print(f"Error while sending result for Task ID '{task_id}': {e.detail}")
-    #     task["status"] = "ERROR"
-    #     task["result"]["error"] = e.detail
+    try:
+        # POST 요청 전송
+        response = await send_post_request(BACKEND_URL, payload)
+        print(f"Backend response: {response}")
+
+        return {"status": "COMPLETED", "response": response}
+
+    except HTTPException as e:
+        # 에러 발생 시 로깅 또는 상태 업데이트
+        print(f"Error while sending result for Task ID '{task_id}': {e}")
+        task["status"] = "ERROR"
+        task["result"]["error"] = e.detail
 
 if __name__ == "__main__":
     import asyncio
