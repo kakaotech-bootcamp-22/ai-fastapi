@@ -85,7 +85,28 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         tasks[task_id]["status"] = "COMPLETED"
 
         # 반환값 수정해야 됌. !!
-        tasks[task_id]["result"] = { "real_probability": voting_results['real_probability'], "fake_probability": voting_results['fake_probability'] }
+        # tasks[task_id]["result"] = { "real_probability": voting_results['real_probability'], "fake_probability": voting_results['fake_probability'] }
+
+        score = int(voting_results['real_probability'] * 100)
+
+        paragraph_prob_with_text = list(zip(paragraph_probabilities, paragraphs))
+        '''
+        [
+        [[0.7, 0.3],   "첫 번째 문단의 내용입니다."],
+        [[0.4, 0.6],   "두 번째 문단의 내용입니다."]
+        ]
+        '''
+
+        evidence = ""
+        if score >= 50:
+            # real_prob가 가장 높은 문단 찾기 (real_prob가 첫 번째 인덱스)
+            evidence = max(paragraph_prob_with_text, key=lambda x: x[0][0])[1]
+        else:
+            # fake_prob가 가장 높은 문단 찾기 (fake_prob가 두 번째 인덱스)
+            evidence = max(paragraph_prob_with_text, key=lambda x: x[0][1])[1]
+
+        tasks[task_id]["result"] = {"requestId":task_id, "blogUrl":url, "summaryTitle" : "<SUMMARY TITLE>", "summaryText":"<SUMMARY TEXT>",
+                                    "score" : score, "evidence": evidence}
 
         await process_task(task_id)
 
@@ -101,9 +122,6 @@ if __name__ == "__main__":
 
     # tasks 초기화
     tasks[task_id] = {"status": "PENDING", "result": None}
-
-    # asyncio.run으로 비동기 함수 실행
-    # asyncio.run(process_and_predict_from_url(task_id, url, driver))
 
     # 결과 확인
     print(tasks[task_id])
