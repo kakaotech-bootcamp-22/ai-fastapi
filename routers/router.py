@@ -1,19 +1,12 @@
-import asyncio
-import os
-
-import httpx
-from dotenv import load_dotenv
 from fastapi import APIRouter
-from pydantic import BaseModel
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
-from utils.prediction_logic import process_and_predict_from_url
-from fastapi import HTTPException
 
-from utils.shared import tasks
+from schemas.review_check import ReviewCheckRequest
+from utils.prediction_logic import process_and_predict_from_url
 
 router = APIRouter()
 # 
@@ -27,12 +20,8 @@ chrome_options.add_argument("--no-sandbox")  # 샌드박스 모드 비활성화
 chrome_options.add_argument("--disable-dev-shm-usage")  # /dev/shm 사용 안 함 (Docker에서 메모리 문제 해결)
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-class ReviewCheckRequest(BaseModel):
-    requestId: str
-    blogUrl: str
-
 @router.post("/")
-async def submit_request(request: ReviewCheckRequest):
+async def process_review_request(request: ReviewCheckRequest):
     # 작업 ID로 받은 requestID 사용
     task_id = request.requestId
     tasks[task_id] = {"status": "PENDING", "result": None}

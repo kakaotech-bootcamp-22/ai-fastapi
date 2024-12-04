@@ -18,20 +18,32 @@
 
 (사진 첨부 예정)
 
-
+### 폴더 및 파일(함수) 설명
+- /models : 모델 관련 파일 (체크포인트 파일)
+- /routers : 클라이언트 요청 처리하는 라우터 폴더
+- /schemas : API 요청 및 응답 모델을 정의하는 데이터 스키마 폴더
+- /utils : 작업에 필요한 모듈 파일들 담긴 폴더
+    - /prediction_logic.py : process_and_predict_from_url() 함수에서 크롤링 → 전처리 → 문단 단위 분할 -> 모델 로드 및 예측 → 소프트 보팅 순서로 핵심 작업을 수행한고,
+                             모든 작업이 수행되어 작업 상태가 COMPLETED로 변경되면, 백엔드로 결과값을 보내주는 process_task() 함수가 실행된다.
+    - /task_logic.py : process_task() 함수와 send_post_request() 함수를 통해 백엔드로 결과값을 비동기적으로 전송해준다.
+- /main.py : FastAPI 애플리케이션의 진입점으로 라우터 등록, 주요 엔드포인트를 정의, 애플리케이션을 실행하는 파일
 
 ---
 
-## 설치 방법
+## 설치 및 실행 방법
+1. 필요한 라이브러리 설치 : pip install -r requirements.txt
+2. 필요한 파일 업로드 하기
+    - models 폴더에 체크포인트.tar 파일 업로드 (최종 학습 이후에 .pt 파일로 변경하기)
+3. uvicorn main:app --reload로 로컬 서버 실행
 
-### 사전 준비
-1. Python 3.8 이상 설치.
-2. 필요한 라이브러리 설치:
-   ```bash
-   pip install -r requirements.txt
+---
 
 ## 워크플로우
 
 1. **블로그 URL 제출**: POST /api/review-check 엔드포인트를 통해 URL 등록. (백엔드 → AI 서버)
 2. **크롤링 및 분석 대기**: URL 처리 및 모델 실행 (비동기 작업).
 3. **결과 확인**: POST /api/review-check/result를 통해 분석 결과 반환. (AI 서버 → 백엔드)
+
+---
+
+## 메모
