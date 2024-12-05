@@ -18,10 +18,12 @@ async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=data)
             response.raise_for_status()
+            print('in send_post_request ????')
 
-            # 테스트
-            return data
-            # return response.json()
+            # # 테스트
+            # return data
+            return response.json()
+
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=f"HTTP error: {str(e)}")
     except httpx.RequestError as e:
@@ -35,19 +37,32 @@ async def process_task(task_id: str):
 
     task = tasks[task_id]
 
+    # if not task:
+    #     raise ValueError(f"Task ID '{task_id}' not found")
+    #
+    # if task["status"] == "COMPLETED":
+    #     print(f"Task {task_id} is already completed. Skipping.")
+    #     return  # 이미 완료된 작업은 중복 처리하지 않음
+    #
+    # if task["status"] == "IN_PROGRESS":
+    #     print(f"Task {task_id} is already in progress. Skipping.")
+    #     return  # 진행 중인 작업은 중복 처리하지 않음
+
+    print('*** 2 : task : ', task, ' ***')
+
+    print("Task data:", task)  # task 전체 출력
+    if "result" not in task or task["result"] is None:
+        raise ValueError(f"Task ID '{task_id}' has invalid or missing 'result' data")
+
     # 백엔드에 전달할 데이터 준비
     payload = {
         "requestId": task_id,
-        "blogUrl": task.get("result").get("blogUrl", "Unknown"),
-        "summaryText": task.get("result").get("summaryText"),
-        "score": task.get("result").get("score"),
-        "evidence": task.get("result").get("evidence")
+        "blogUrl": task.get("result", {}).get("blogUrl", "Unknown"),
+        "summaryText": task.get("result", {}).get("summaryText", ""),
+        "score": task.get("result", {}).get("score", 0),
+        "evidence": task.get("result", {}).get("evidence", "No evidence found")
     }
 
-    # # 테스트 코드
-    # return payload
-
-    # 실제로 실행 시에는 위에 테스트 코드 지우고 아래 주석 풀기!!
     try:
         # POST 요청 전송
         response = await send_post_request(BACKEND_URL, payload)
@@ -57,28 +72,6 @@ async def process_task(task_id: str):
 
     except HTTPException as e:
         # 에러 발생 시 로깅 또는 상태 업데이트
-        print(f"Error while sending result for Task ID '{task_id}': {e}")
+        print(f"?? Error while sending result for Task ID '{task_id}': {e}")
         task["status"] = "ERROR"
         task["result"]["error"] = e.detail
-
-if __name__ == "__main__":
-    import asyncio
-    from utils.shared import tasks
-
-    # 더미 데이터 초기화
-    tasks["123e4567-e89b-12d3-a456-426614174000"] = {
-        "status": "COMPLETED",
-        "result": {
-            "blogUrl": "https://blog.naver.com/tkdtkdgns1/223604228666",
-            "summaryText": "This post appears genuine.",
-            "review_score": 85,
-            "reason": "Minimal promotional language found."
-        }
-    }
-
-    # 비동기 함수 실행 및 결과 출력
-    async def test_process_task():
-        result = await process_task(task_id="123e4567-e89b-12d3-a456-426614174000")
-        print(result)
-
-    asyncio.run(test_process_task())

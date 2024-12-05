@@ -113,8 +113,16 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
             # fake_prob가 가장 높은 문단 찾기 (fake_prob가 두 번째 인덱스)
             evidence = max(paragraph_prob_with_text, key=lambda x: x[0][1])[1]
 
-        tasks[task_id]["result"] = {"requestId":task_id, "blogUrl":url, "summaryTitle" : "<SUMMARY TITLE>", "summaryText":"<SUMMARY TEXT>",
-                                    "score" : score, "evidence": evidence}
+        tasks[task_id]["result"] = {
+                                    "requestId":task_id,
+                                    "blogUrl":url,
+                                    "summaryTitle" : "<SUMMARY TITLE>",
+                                    "summaryText":"<SUMMARY TEXT>",
+                                    "score" : score,
+                                    "evidence": evidence
+                                    }
+
+        print('*** 1 : process_task_id 실행 전 ***')
 
         await process_task(task_id)
 

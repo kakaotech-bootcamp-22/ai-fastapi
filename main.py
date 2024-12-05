@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from routers import router  # 라우터 임포트
 from utils.task_logic import process_task
-
 from utils.shared import tasks
 
 # FastAPI 인스턴스 생성
@@ -14,34 +13,14 @@ app.include_router(router.router, prefix="/review-check", tags=["Prediction"])  
 async def root():
     return {"message": "Hello World"}
 
-
 @app.get("/hello/{name}")
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
+# ai -> backend 테스트 하기 위한 api (테스트가 가능한거?)
 @app.post("/review-check/response")
 async def receive_response():
-    # 초기화된 더미 데이터
-    tasks["123e4567-e89b-12d3-a456-426614174000"] = {
-        "status": "COMPLETED",
-        "result": {
-            "blogUrl": "https://blog.naver.com/tkdtkdgns1/223604228666",
-            "summaryText": "This post appears genuine.",
-            "review_score": 85,
-            "reason": "Minimal promotional language found."
-        }
-    }
 
-    # 비동기 처리 함수 호출
-    result = await process_task(task_id="123e4567-e89b-12d3-a456-426614174000")
+    result = '!!!! got response !!!!!'
 
     return result
-
-
-
-
-'''
-main에서 from routers import review_check
-review_check.py에서 from utils.prediction_logic import process_and_predict_from_url 
-prediction 
-'''
