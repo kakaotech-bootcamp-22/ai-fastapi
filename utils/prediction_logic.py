@@ -123,7 +123,7 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
                                     "evidence": evidence
                                     }
 
-        print('*** 1 : process_task_id 실행 전 ***')
+        #print('*** 1 : process_task_id 실행 전 ***')
 
         await process_task(task_id)
 
