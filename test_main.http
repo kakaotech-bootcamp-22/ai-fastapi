@@ -10,13 +10,14 @@ Accept: application/json
 
 ###
 
-POST http://127.0.0.1:8000/api/submit
+POST http://127.0.0.1:8000/review-check
 Content-Type: application/json
 
 {
-  "URL": "https://blog.naver.com/tkdtkdgns1/223604228666"
+  "requestId": "123e4567-e89b-12d3-a456-426614174000",
+  "blogUrl": "https://blog.naver.com/iamsom7/223675309535"
 }
 
 ###
-GET http://127.0.0.1:8000/api/result/1
+POST http://127.0.0.1:8000/review-check/response
 Accept: application/json
