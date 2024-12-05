@@ -18,7 +18,7 @@ async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=data)
             response.raise_for_status()
-            print('in send_post_request ????')
+            # print('in send_post_request ????')
 
             # # 테스트
             # return data

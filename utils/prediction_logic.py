@@ -53,7 +53,8 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         # 2. 전처리 수행
         processor = TextProcessor()
         processed_text = processor.process_text(raw_text)
-        #print("\n\n!!!!! processed_text:", processed_text)
+
+        # print("\n\n!!!!! processed_text:", processed_text)
 
         if not processed_text.strip():
             tasks[task_id]["status"] = "FAILED"
@@ -67,7 +68,7 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         paragraphs = split_text_into_paragraphs(processed_text, tokenizer)
 
         # 테스트용 출력
-        #print(f"\n\n @@@ 분리된 문단: {paragraphs}")
+        # print(f"\n\n @@@ 분리된 문단: {paragraphs}")
 
         # 4. 모델 로드 및 예측
         model.eval()    # 모델 평가 모드 전환

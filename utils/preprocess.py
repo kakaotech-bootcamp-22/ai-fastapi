@@ -32,6 +32,7 @@ class TextProcessor:
 
         try:
             # 띄어쓰기 교정
+            # spaced_text = self.kiwi.join(self.kiwi.analyze(text, normalize_coda=True)[0][0])  # 띄어쓰기 교정
             spaced_text = self.spacing(text)
 
             # 문장 분리
