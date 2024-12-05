@@ -10,7 +10,7 @@ from utils.shared import tasks
 load_dotenv()
 
 # 환경 변수에서 백엔드 URL 가져오기 (TEST, PROD 필요한 것으로 변경)
-BACKEND_URL = os.getenv("BACKEND_URL_TEST")
+BACKEND_URL = os.getenv("BACKEND_URL_PROD")
 
 # POST 요청 전송 함수
 async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
