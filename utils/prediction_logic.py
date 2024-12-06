@@ -3,6 +3,7 @@ from ssl import Options
 
 from selenium.webdriver.chrome import webdriver
 
+from utils.summarize import generate_summary
 from utils.task_logic import process_task
 from utils.shared import tasks
 from utils.crawling import parse_html, crawl_url
@@ -43,7 +44,7 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
             return
 
         raw_text = crawl_url(soup)
-        # print('raw text:', raw_text)
+        # print('*** raw text:', raw_text)
 
         if not raw_text:
             tasks[task_id]["status"] = "FAILED"
@@ -54,7 +55,16 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         processor = TextProcessor()
         processed_text = processor.process_text(raw_text)
 
-        # print("\n\n!!!!! processed_text:", processed_text)
+        # print("\n\n*** processed_text:", processed_text)
+
+        # 2-1. 전처리 된 텍스트 요약하기
+        parsed_result = generate_summary(processed_text)
+        print('*** Print parsedResult in Prediction_logic', parsed_result)
+
+        title_summary = parsed_result["Title"]
+        content_summary = parsed_result["Summary"]
+
+        print('TITLE SUMMARY : ', title_summary,'\n\n', 'CONTENT SUMMARY: ', content_summary)
 
         if not processed_text.strip():
             tasks[task_id]["status"] = "FAILED"
@@ -117,8 +127,8 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
         tasks[task_id]["result"] = {
                                     "requestId":task_id,
                                     "blogUrl":url,
-                                    "summaryTitle" : "<SUMMARY TITLE>",
-                                    "summaryText":"<SUMMARY TEXT>",
+                                    "summaryTitle" : title_summary,
+                                    "summaryText" : content_summary,
                                     "score" : score,
                                     "evidence": evidence
                                     }

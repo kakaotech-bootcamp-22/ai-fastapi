@@ -48,8 +48,6 @@ async def process_task(task_id: str):
     #     print(f"Task {task_id} is already in progress. Skipping.")
     #     return  # 진행 중인 작업은 중복 처리하지 않음
 
-    # print('*** 2 : task : ', task, ' ***')
-
     # print("Task data:", task)  # task 전체 출력
     if "result" not in task or task["result"] is None:
         raise ValueError(f"Task ID '{task_id}' has invalid or missing 'result' data")
@@ -58,10 +56,15 @@ async def process_task(task_id: str):
     payload = {
         "requestId": task_id,
         "blogUrl": task.get("result", {}).get("blogUrl", "Unknown"),
+        "summaryTitle": task.get("result", {}).get("summaryTitle", "Unknown"),
         "summaryText": task.get("result", {}).get("summaryText", ""),
         "score": task.get("result", {}).get("score", 0),
         "evidence": task.get("result", {}).get("evidence", "No evidence found")
     }
+
+    print('*** 2 : payload : ', payload, ' ***')
+    print('title : ', task.get("result", {}).get("summaryTitle", "Unknown"))
+    print('text : ', task.get("result", {}).get("summaryText", "Unknown"))
 
     try:
         # POST 요청 전송
