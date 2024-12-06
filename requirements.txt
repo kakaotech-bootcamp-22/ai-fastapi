@@ -44,7 +44,7 @@ protobuf==5.28.3
 pydantic==2.10.1
 pydantic_core==2.27.1
 Pygments==2.18.0
-pykospacing @ git+https://github.com/haven-jeon/PyKoSpacing.git
+# pykospacing @ git+https://github.com/haven-jeon/PyKoSpacing.git
 PySocks==1.7.1
 python-dotenv==1.0.1
 PyYAML==6.0.2
