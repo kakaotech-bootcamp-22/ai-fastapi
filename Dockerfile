@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Stage 2: Runtime Stage
 FROM python:3.11-slim
 
+RUN pip install fastapi uvicorn
 # 작업 디렉토리 설정
 WORKDIR /app
 
