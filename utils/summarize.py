@@ -26,9 +26,7 @@ def generate_summary(content: str) -> dict:
         dict: 제목과 요약을 포함하는 결과
     """
     try:
-        model = "gpt-3.5-turbo"
-        if len(content.split()) > 2500:  # 본문 단어 수가 2500개 이상이면
-            model = "gpt-4"
+        model = "gpt-4o-mini"
 
         # OpenAI API 호출
         response = openai.ChatCompletion.create(
