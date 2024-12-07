@@ -4,13 +4,24 @@ from typing import Dict, Any
 import httpx
 from dotenv import load_dotenv
 from fastapi import HTTPException
+
+from aws_config import get_ssm_parameter
 from utils.shared import tasks
 
-# .env 파일 로드
-load_dotenv()
+# # .env 파일 로드
+# load_dotenv()
+#
+# # 환경 변수에서 백엔드 URL 가져오기 (TEST, PROD 필요한 것으로 변경)
+# BACKEND_URL = os.getenv("BACKEND_URL_PROD")
 
-# 환경 변수에서 백엔드 URL 가져오기 (TEST, PROD 필요한 것으로 변경)
-BACKEND_URL = os.getenv("BACKEND_URL_PROD")
+#백엔드 서버 파라미터 경로
+backend_url_param = "/config/ktb22/backend.server.url"
+
+# # 테스트
+# backend_url_param = "/config/ktb22/backend.test.url"
+
+# 각 파라미터 값 가져오기
+BACKEND_URL = get_ssm_parameter(backend_url_param)
 
 # POST 요청 전송 함수
 async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
@@ -48,8 +59,6 @@ async def process_task(task_id: str):
     #     print(f"Task {task_id} is already in progress. Skipping.")
     #     return  # 진행 중인 작업은 중복 처리하지 않음
 
-    # print('*** 2 : task : ', task, ' ***')
-
     # print("Task data:", task)  # task 전체 출력
     if "result" not in task or task["result"] is None:
         raise ValueError(f"Task ID '{task_id}' has invalid or missing 'result' data")
@@ -58,10 +67,15 @@ async def process_task(task_id: str):
     payload = {
         "requestId": task_id,
         "blogUrl": task.get("result", {}).get("blogUrl", "Unknown"),
+        "summaryTitle": task.get("result", {}).get("summaryTitle", "Unknown"),
         "summaryText": task.get("result", {}).get("summaryText", ""),
         "score": task.get("result", {}).get("score", 0),
         "evidence": task.get("result", {}).get("evidence", "No evidence found")
     }
+
+    print('*** 2 : payload : ', payload, ' ***')
+    print('title : ', task.get("result", {}).get("summaryTitle", "Unknown"))
+    print('text : ', task.get("result", {}).get("summaryText", "Unknown"))
 
     try:
         # POST 요청 전송
