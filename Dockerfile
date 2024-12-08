@@ -8,7 +8,7 @@ COPY . .
 
 # S3에서 다운로드한 파일 복사 (Jenkins가 처리한 파일 포함)
 COPY *.tar /app/models/
-COPY pykospacing/ /app/pykospacing/
+# COPY pykospacing/ /app/pykospacing/
 
 # 라이브러리 설치
 RUN pip install --no-cache-dir -r requirements.txt
