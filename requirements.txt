@@ -12,6 +12,7 @@ botocore==1.35.76
 certifi==2024.8.30
 charset-normalizer==3.4.0
 click==8.1.7
+coloredlogs==15.0.1
 distro==1.9.0
 fastapi==0.115.5
 filelock==3.16.1
@@ -19,7 +20,9 @@ flatbuffers==24.3.25
 frozenlist==1.5.0
 fsspec==2024.10.0
 gast==0.6.0
+gluonnlp==0.8.0
 google-pasta==0.2.0
+graphviz==0.8.4
 grpcio==1.68.0
 h11==0.14.0
 h5py==3.12.1
@@ -27,6 +30,7 @@ httpcore==1.0.7
 httptools==0.6.4
 httpx==0.28.0
 huggingface-hub==0.26.2
+humanfriendly==10.0
 idna==3.10
 Jinja2==3.1.4
 jiter==0.8.0
@@ -34,6 +38,8 @@ jmespath==1.0.1
 keras==3.6.0
 kiwipiepy==0.20.2
 kiwipiepy_model==0.20.0
+kobert @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
+kobert-tokenizer @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
 kobert-transformers==0.6.0
 libclang==18.1.1
 Markdown==3.7
@@ -43,9 +49,11 @@ mdurl==0.1.2
 ml-dtypes==0.4.1
 mpmath==1.3.0
 multidict==6.1.0
+mxnet==1.6.0
 namex==0.0.8
 networkx==3.4.2
-numpy==2.0.2
+numpy==1.26.4
+onnxruntime==1.18.0
 openai==0.28.0
 opt_einsum==3.4.0
 optree==0.13.1
@@ -56,7 +64,7 @@ protobuf==5.28.3
 pydantic==2.10.1
 pydantic_core==2.27.1
 Pygments==2.18.0
-# pykospacing @ file:///Users/admin/PycharmProjects/ai_fastapi/PyKoSpacing
+pykospacing @ file:///Users/admin/PycharmProjects/ai_fastapi/PyKoSpacing
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
