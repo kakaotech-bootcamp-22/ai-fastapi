@@ -4,6 +4,8 @@ import os
 from transformers import BertModel, XLNetTokenizer
 from transformers import XLNetTokenizer  # BertTokenizer,
 
+from kobert_tokenizer import KoBERTTokenizer
+
 from utils.load_model import load_model_from_checkpoint, BERTClassifier
 
 
@@ -49,10 +51,12 @@ def load_model_and_tokenizer():
 
     # 모델 경로 설정
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 상위 디렉토리로 이동
-    checkpoint_path = os.path.join(base_dir, "models", "checkpoint_epoch_36.tar")
+    checkpoint_path = os.path.join(base_dir, "models", "checkpoint_epoch_6.pt")
 
     bert = BertModel.from_pretrained("skt/kobert-base-v1")  # BERT 모델 로드
     model = load_model_from_checkpoint(checkpoint_path, lambda dr_rate: BERTClassifier(bert, dr_rate=dr_rate))
-    tokenizer = XLNetTokenizer.from_pretrained("skt/kobert-base-v1")  # KoBERT 토크나이저 로드
+    tokenizer = KoBERTTokenizer.from_pretrained("skt/kobert-base-v1")  # KoBERT 토크나이저 로드
+
+    print("print model & tokenizer ! : ", model, tokenizer)
 
     return model, tokenizer

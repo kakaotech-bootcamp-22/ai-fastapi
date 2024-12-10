@@ -73,7 +73,7 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
 
         # 3. 텍스트를 문단으로 나누기
         model, tokenizer = load_model_and_tokenizer()
-        # print(f"\n\n Tokenizer 확인: {tokenizer}")
+        print(f"\n\n Tokenizer 확인: {tokenizer}")
 
         paragraphs = split_text_into_paragraphs(processed_text, tokenizer)
 
@@ -132,6 +132,7 @@ async def process_and_predict_from_url(task_id: str, url: str, driver):
                                     "score" : score,
                                     "evidence": evidence
                                     }
+        print("result :  ", tasks[task_id]["result"])
 
         #print('*** 1 : process_task_id 실행 전 ***')
 

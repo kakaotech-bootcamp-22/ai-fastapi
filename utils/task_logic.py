@@ -14,7 +14,7 @@ from utils.shared import tasks
 # # 환경 변수에서 백엔드 URL 가져오기 (TEST, PROD 필요한 것으로 변경)
 # BACKEND_URL = os.getenv("BACKEND_URL_PROD")
 
-#백엔드 서버 파라미터 경로
+# 백엔드 서버 파라미터 경로
 backend_url_param = "/config/ktb22/backend.server.url"
 
 # # 테스트
@@ -33,6 +33,7 @@ async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
 
             # # 테스트
             # return data
+            print('data: ', data)
             return response.json()
 
     except httpx.HTTPStatusError as e:
