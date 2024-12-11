@@ -72,7 +72,7 @@ PyYAML==6.0.2
 regex==2024.11.6
 requests==2.32.3
 rich==13.9.4
-s3transfer==0.10.4
+s3transfer>=0.3.0,<0.4.0 
 safetensors==0.4.5
 selenium==4.27.1
 sentencepiece==0.2.0
