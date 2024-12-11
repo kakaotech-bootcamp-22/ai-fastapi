@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
 RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-RUN pip install -e /app/pykospacing/
+# RUN pip install -e /app/pykospacing/
 
 # RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
 # RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
