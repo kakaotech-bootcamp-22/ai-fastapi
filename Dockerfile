@@ -6,6 +6,8 @@ WORKDIR /app
 # 필요한 도구 설치
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
+
+ENV PYTHONPATH=/app
 # 로컬 코드 복사
 COPY . .
 
