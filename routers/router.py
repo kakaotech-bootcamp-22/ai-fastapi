@@ -10,6 +10,8 @@ from utils.prediction_logic import process_and_predict_from_url
 
 from utils.shared import tasks
 
+import asyncio
+
 router = APIRouter()
 
 # Selenium WebDriver 설정
@@ -33,7 +35,7 @@ async def process_review_request(request: ReviewCheckRequest):
     tasks[task_id] = {"status": "PENDING", "result": None}
 
     # 비동기 작업 처리 시뮬레이션
-    await process_and_predict_from_url(task_id, request.blogUrl, driver)
+    asyncio.create_task(process_and_predict_from_url(task_id, request.blogUrl, driver))
 
     return {"message": "Request received. Processing started.", "requestId": task_id}
 

@@ -23,6 +23,9 @@ backend_url_param = "/config/ktb22/backend.server.url"
 # 각 파라미터 값 가져오기
 BACKEND_URL = get_ssm_parameter(backend_url_param)
 
+# # 백엔드 로컬 테스트
+# BACKEND_URL = "http://localhost:8001/review-check/response"
+
 # POST 요청 전송 함수
 async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
     try:
