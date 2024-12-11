@@ -38,8 +38,8 @@ jmespath==1.0.1
 keras==3.6.0
 kiwipiepy==0.20.2
 kiwipiepy_model==0.20.0
-# kobert @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
-# kobert-tokenizer @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
+kobert @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
+kobert-tokenizer @ git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
 kobert-transformers==0.6.0
 libclang==18.1.1
 Markdown==3.7
