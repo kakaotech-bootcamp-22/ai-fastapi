@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 
-ENV PYTHONPATH=/app
+# ENV PYTHONPATH=/app
 # 로컬 코드 복사
 COPY . .
 
