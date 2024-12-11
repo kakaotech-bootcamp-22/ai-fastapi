@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 
-ENV PYTHONPATH=/app
+# ENV PYTHONPATH=/app
 # 로컬 코드 복사
 COPY . .
 
@@ -18,7 +18,7 @@ COPY pykospacing/ /app/pykospacing/
 # 라이브러리 설치
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
-RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+# RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # RUN pip install -e /app/pykospacing/
 
