@@ -16,13 +16,34 @@ router = APIRouter()
 
 # Selenium WebDriver 설정
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-software-rasterizer')
+chrome_options.add_argument('--remote-debugging-port=9222')
+chrome_options.add_argument('--window-size=1920,1080')
+chrome_options.add_argument('--disable-extensions')
+chrome_options.add_argument('--proxy-server="direct://"')
+chrome_options.add_argument('--proxy-bypass-list=*')
+chrome_options.add_argument('--start-maximized')
+
+# 타임아웃 설정 추가
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+caps = DesiredCapabilities().CHROME
+caps["pageLoadStrategy"] = "none"  # 페이지 로드 완료를 기다리지 않음
+
 # ChromeDriverManager 대신 시스템에 설치된 ChromeDriver 사용
 service = Service('/usr/local/bin/chromedriver')
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Chrome(
+    service=service,
+    options=chrome_options,
+    desired_capabilities=caps
+)
+
+# 전역 타임아웃 설정
+driver.set_page_load_timeout(30)
+driver.implicitly_wait(10)
 
 
 # chrome_options = Options()
