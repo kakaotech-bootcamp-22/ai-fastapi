@@ -1,14 +1,31 @@
 FROM python:3.11-slim 
 
-# 작업 디렉토리 설정
-WORKDIR /app
+
 
 # 필요한 도구 설치
 RUN apt-get update && apt-get install -y \ 
-git \
-wget \
-gnupg \
-unzip \
+    git \
+    wget \
+    gnupg \
+    unzip \
+    xvfb \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    xdg-utils \
 && rm -rf /var/lib/apt/lists/*
 
 # Chrome 설치
@@ -24,6 +41,9 @@ RUN wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/131.0.67
     && mv chromedriver-linux64/chromedriver /usr/local/bin/ \
     && rm -rf chromedriver-linux64.zip chromedriver-linux64
 
+
+# 작업 디렉토리 설정
+WORKDIR /app
 # ENV PYTHONPATH=/app
 # 로컬 코드 복사
 COPY . .
@@ -41,8 +61,13 @@ RUN pip install -e /app/pykospacing/
 
 
 RUN chmod +x /usr/local/bin/chromedriver
-# RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
-# RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
+
+# Chrome 샌드박스 비활성화를 위한 디렉토리 생성
+RUN mkdir -p /var/run/chrome && chmod -R 777 /var/run/chrome
+
+# 환경 변수 설정
+ENV PYTHONUNBUFFERED=1
+ENV DISPLAY=:99
 
 # 파일 압축 해제
 # RUN tar -xvf /app/models/checkpoint_epoch_36.tar -C /app/models && rm /app/models/checkpoint_epoch_36.tar
