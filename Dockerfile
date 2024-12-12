@@ -4,8 +4,26 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # 필요한 도구 설치
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \ 
+git \
+wget \
+gnupg \
+unzip \
+&& rm -rf /var/lib/apt/lists/*
 
+# Chrome 설치
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# ChromeDriver 설치
+RUN CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f3 | cut -d '.' -f1) \
+    && CHROMEDRIVER_VERSION=$(wget -qO- https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}) \
+    && wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip -d /usr/local/bin \
+    && rm chromedriver_linux64.zip
 
 # ENV PYTHONPATH=/app
 # 로컬 코드 복사
@@ -22,6 +40,8 @@ RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 RUN pip install -e /app/pykospacing/
 
+
+RUN chmod +x /usr/local/bin/chromedriver
 # RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47
 # RUN pip install git+https://github.com/SKTBrain/KoBERT.git@5c46b1c68e4755b54879431bd302db621f4d2f47#subdirectory=kobert_hf
 
