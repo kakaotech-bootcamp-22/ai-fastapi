@@ -29,10 +29,10 @@ RUN apt-get update && apt-get install -y \
 && rm -rf /var/lib/apt/lists/*
 
 # Chrome 설치
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+RUN wget -q https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_131.0.6778.139-1_amd64.deb \
     && apt-get update \
-    && apt-get install -y google-chrome-stable \
+    && apt install -y ./google-chrome-stable_131.0.6778.139-1_amd64.deb \
+    && rm google-chrome-stable_131.0.6778.139-1_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
 # ChromeDriver 설치 (특정 버전 사용)
