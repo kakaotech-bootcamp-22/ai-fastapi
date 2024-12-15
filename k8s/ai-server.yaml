@@ -1,14 +1,5 @@
 # ai-server.yaml
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ai-server-config
-data:
-  MODEL_PATH: "/app/models"
-  LOG_LEVEL: "INFO"
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,9 +18,14 @@ spec:
         node-group: ai-workload
       containers:
       - name: fastapi
-        image: {your-aws-account}.dkr.ecr.{region}.amazonaws.com/ai-server:latest
+        image: ${ECR_IMAGE}  # Jenkins에서 주입
         ports:
         - containerPort: 8000
+        env:
+        - name: OPENAI_API_KEY
+          value: ${OPENAI_API_KEY}  # Jenkins에서 주입
+        - name: BACKEND_URL
+          value: ${BACKEND_URL}  # Jenkins에서 주입
         resources:
           requests:
             cpu: "1"
@@ -37,42 +33,12 @@ spec:
           limits:
             cpu: "2"
             memory: "4Gi"
-        env:
-        - name: MODEL_PATH
-          valueFrom:
-            configMapKeyRef:
-              name: ai-server-config
-              key: MODEL_PATH
-        - name: LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              name: ai-server-config
-              key: LOG_LEVEL
         readinessProbe:
           httpGet:
             path: /health
             port: 8000
           initialDelaySeconds: 15
           periodSeconds: 30
-        volumeMounts:
-        - name: model-storage
-          mountPath: /app/models
-      volumes:
-      - name: model-storage
-        persistentVolumeClaim:
-          claimName: ai-model-pvc
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ai-model-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
 
 ---
 apiVersion: v1
