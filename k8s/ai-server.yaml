@@ -1,5 +1,14 @@
 # ai-server.yaml
 ---
+# AWS Parameter Store 접근을 위한 ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ai-server-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/${var.cluster_name}-parameter-store-role
+---
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,33 +23,29 @@ spec:
       labels:
         app: ai-server
     spec:
+      serviceAccountName: ai-server-sa  # AWS 권한을 위한 ServiceAccount 연결
       nodeSelector:
-        node-group: ai-workload
+        eks.amazonaws.com/nodegroup: ai-node-group-2024111106152855660000001a
       containers:
       - name: fastapi
-        image: ${ECR_IMAGE}  # Jenkins에서 주입
+        image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/ai-server-real:${TAG}
         ports:
         - containerPort: 8000
-        env:
-        - name: OPENAI_API_KEY
-          value: ${OPENAI_API_KEY}  # Jenkins에서 주입
-        - name: BACKEND_URL
-          value: ${BACKEND_URL}  # Jenkins에서 주입
         resources:
           requests:
+            cpu: "0.5"
+            memory: "1Gi"
+          limits:
             cpu: "1"
             memory: "2Gi"
-          limits:
-            cpu: "2"
-            memory: "4Gi"
         readinessProbe:
           httpGet:
             path: /health
             port: 8000
           initialDelaySeconds: 15
           periodSeconds: 30
-
 ---
+# Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -51,5 +56,4 @@ spec:
   ports:
   - port: 8000
     targetPort: 8000
-    protocol: TCP
   type: ClusterIP
