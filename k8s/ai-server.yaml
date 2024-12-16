@@ -6,7 +6,7 @@ kind: ServiceAccount
 metadata:
   name: ai-server-sa
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/${var.cluster_name}-parameter-store-role
+    eks.amazonaws.com/role-arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/${var.role_name}
 ---
 # Deployment
 apiVersion: apps/v1
@@ -25,7 +25,7 @@ spec:
     spec:
       serviceAccountName: ai-server-sa  # AWS 권한을 위한 ServiceAccount 연결
       nodeSelector:
-        eks.amazonaws.com/nodegroup: ai-node-group-2024111106152855660000001a
+        eks.amazonaws.com/nodegroup: ${NODE_GROUP}
       containers:
       - name: fastapi
         image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/ai-server-real:${TAG}
