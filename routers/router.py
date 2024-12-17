@@ -29,7 +29,7 @@ chrome_options.add_argument('--proxy-bypass-list=*')
 chrome_options.add_argument('--start-maximized')
 
 # 타임아웃 설정 추가
-chrome_options.page_load_strategy = 'none'
+chrome_options.page_load_strategy = 'normal'
 
 # ChromeDriverManager 대신 시스템에 설치된 ChromeDriver 사용
 service = Service('/usr/local/bin/chromedriver')
