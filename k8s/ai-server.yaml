@@ -40,7 +40,7 @@ spec:
             memory: "2Gi"
         readinessProbe:
           httpGet:
-            path: /health
+            path: /docs
             port: 8000
           initialDelaySeconds: 15
           periodSeconds: 30
