@@ -1,4 +1,4 @@
-from utils.summarize import generate_summary
+from utils.summarize import generate_title_summary, generate_text_summary
 from utils.task_logic import process_task
 from utils.shared import tasks
 from utils.crawling import parse_html, crawl_url
@@ -18,6 +18,7 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
             tasks[task_id]["result"] = "HTML 파싱에 실패했습니다."
             success = False
 
+        raw_text = ""
         if success:
             raw_text = crawl_url(soup)
             if not raw_text:
@@ -26,15 +27,18 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
                 success = False
 
         # 2. 전처리 수행
+        processed_text = ""
+        title_summary = ""
+        content_summary = ""
+
         if success:
             processor = TextProcessor()
             processed_text = processor.process_text(raw_text)
 
             # 2-1. 전처리 된 텍스트 요약하기
             try:
-                parsed_result = generate_summary(processed_text)
-                title_summary = parsed_result["Title"]
-                content_summary = parsed_result["Summary"]
+                title_summary = generate_title_summary(processed_text)
+                content_summary = generate_text_summary(processed_text)
             except Exception as e:
                 tasks[task_id]["status"] = "FAILED"
                 tasks[task_id]["result"] = f"텍스트 요약 중 오류가 발생했습니다: {str(e)}"

@@ -29,7 +29,7 @@ BACKEND_URL = get_ssm_parameter(backend_url_param)
 # POST 요청 전송 함수
 def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
     try:
-        with httpx.Client() as client:
+        with httpx.Client(timeout=httpx.Timeout(30.0)) as client:
             response = client.post(url, json=data)
             response.raise_for_status()
             return response.json()

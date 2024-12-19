@@ -14,8 +14,8 @@ POST http://127.0.0.1:8000/review-check
 Content-Type: application/json
 
 {
-  "requestId": "123e4567-e89b-12d3-a456-426614174000",
-  "blogUrl": "https://blog.naver.com/ljh98128/223640339178"
+  "requestId": "f095a9a7-65c3-4b1d-bca5-cb93423547f86",
+  "blogUrl": "https://blog.naver.com/kizaki56/223698190457"
 }
 
 ###
