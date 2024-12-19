@@ -17,9 +17,10 @@ tasks = {
         }
     },
     "task_id_2": {
-        "status": "IN_PROGRESS",  # 작업 상태
-        "result": None  # 아직 작업 결과가 없는 상태
+        "status": "FAILED",  # 작업 상태
+        "result": "HTML 파싱에 실패했습니다."  # 아직 작업 결과가 없는 상태
     }
+    
 }
 
 

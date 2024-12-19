@@ -36,7 +36,9 @@ async def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
 
             # # 테스트
             # return data
-            print('data: ', data)
+            # print('response.json() : ', response.json())
+            # print('response.status_code : ', response.status_code)
+            # print('response.text : ', response.text)
             return response.json()
 
     except httpx.HTTPStatusError as e:
@@ -68,25 +70,28 @@ async def process_task(task_id: str):
         raise ValueError(f"Task ID '{task_id}' has invalid or missing 'result' data")
 
     # 백엔드에 전달할 데이터 준비
-    payload = {
-        "requestId": task_id,
-        "blogUrl": task.get("result", {}).get("blogUrl", "Unknown"),
-        "summaryTitle": task.get("result", {}).get("summaryTitle", "Unknown"),
-        "summaryText": task.get("result", {}).get("summaryText", ""),
-        "score": task.get("result", {}).get("score", 0),
-        "evidence": task.get("result", {}).get("evidence", "No evidence found")
-    }
+    # payload = {
+    #     "requestId": task_id,
+    #     "blogUrl": task.get("result", {}).get("blogUrl", "Unknown"),
+    #     "summaryTitle": task.get("result", {}).get("summaryTitle", "Unknown"),
+    #     "summaryText": task.get("result", {}).get("summaryText", ""),
+    #     "score": task.get("result", {}).get("score", 0),
+    #     "evidence": task.get("result", {}).get("evidence", "No evidence found")
+    # }
+
+
+    payload = task
 
     print('*** 2 : payload : ', payload, ' ***')
-    print('title : ', task.get("result", {}).get("summaryTitle", "Unknown"))
-    print('text : ', task.get("result", {}).get("summaryText", "Unknown"))
+    # print('title : ', task.get("result", {}).get("summaryTitle", "Unknown"))
+    # print('text : ', task.get("result", {}).get("summaryText", "Unknown"))
 
     try:
         # POST 요청 전송
         response = await send_post_request(BACKEND_URL, payload)
         print(f"Backend response: {response}")
 
-        return {"status": "COMPLETED", "response": response}
+        return response
 
     except HTTPException as e:
         # 에러 발생 시 로깅 또는 상태 업데이트
