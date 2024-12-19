@@ -50,13 +50,12 @@ driver.implicitly_wait(10)
 # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 @router.post("/")
-async def process_review_request(request: ReviewCheckRequest):
+def process_review_request(request: ReviewCheckRequest):
     # 작업 ID로 받은 requestID 사용
     task_id = request.requestId
     tasks[task_id] = {"status": "PENDING", "result": None}
 
-    # 비동기 작업 처리 시뮬레이션
-    asyncio.create_task(process_and_predict_from_url(task_id, request.blogUrl, driver))
+    process_and_predict_from_url(task_id, request.blogUrl, driver)
 
     return {"message": "Request received. Processing started.", "requestId": task_id}
 
