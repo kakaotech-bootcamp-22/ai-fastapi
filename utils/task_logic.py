@@ -1,18 +1,8 @@
-# POST 요청 전송
-import os
 from typing import Dict, Any
 import httpx
-from dotenv import load_dotenv
 from fastapi import HTTPException
-
 from aws_config import get_ssm_parameter
 from utils.shared import tasks
-
-# # .env 파일 로드
-# load_dotenv()
-#
-# # 환경 변수에서 백엔드 URL 가져오기 (TEST, PROD 필요한 것으로 변경)
-# BACKEND_URL = os.getenv("BACKEND_URL_PROD")
 
 # 백엔드 서버 파라미터 경로
 backend_url_param = "/config/ktb22/backend.server.url"
@@ -30,8 +20,16 @@ BACKEND_URL = get_ssm_parameter(backend_url_param)
 def send_post_request(url: str, data: Dict[str, Any]) -> Dict:
     try:
         with httpx.Client(timeout=httpx.Timeout(30.0)) as client:
+            print('before sending data')
+
             response = client.post(url, json=data)
+
+            print('after sending data')
+
             response.raise_for_status()
+
+            print('Data sent to Backend : ', data)
+
             return response.json()
 
     except httpx.HTTPStatusError as e:
@@ -47,13 +45,10 @@ def process_task(task_id: str):
 
     task = tasks[task_id]
 
-    # print("Task data:", task)  # task 전체 출력
     if "result" not in task or task["result"] is None:
         raise ValueError(f"Task ID '{task_id}' has invalid or missing 'result' data")
 
     payload = task
-
-    print('*** 2 : payload : ', payload, ' ***')
 
     try:
         # POST 요청 전송

@@ -1,16 +1,10 @@
 from fastapi import APIRouter
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
-
 from schemas.review_check import ReviewCheckRequest
 from utils.prediction_logic import process_and_predict_from_url
-
 from utils.shared import tasks
 
-import asyncio
 
 router = APIRouter()
 
@@ -41,13 +35,6 @@ driver = webdriver.Chrome(
 # 전역 타임아웃 설정
 driver.set_page_load_timeout(30)
 driver.implicitly_wait(10)
-
-
-# chrome_options = Options()
-# chrome_options.add_argument("--headless")  # 헤드리스 모드
-# chrome_options.add_argument("--no-sandbox")  # 샌드박스 모드 비활성화
-# chrome_options.add_argument("--disable-dev-shm-usage")  # /dev/shm 사용 안 함 (Docker에서 메모리 문제 해결)
-# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 @router.post("/")
 def process_review_request(request: ReviewCheckRequest):

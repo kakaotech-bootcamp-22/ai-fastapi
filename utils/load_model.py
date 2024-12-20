@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 # 모델 클래스 정의
 # 리팩토링 필요
 class BERTClassifier(nn.Module):
@@ -60,10 +59,7 @@ def load_model_from_checkpoint(checkpoint_path, bert_model_class):
     '''
     checkpoint = torch.load(checkpoint_path, map_location=device)  # weights_only=True -> 체크포인트 파일이 단순히 모델 가중치만 포함한다면, weights_only=True를 사용할 수 있다
 
-    # print('checkpoint', checkpoint)
     # 모델 상태 복원 : 로드된 체크포인트에서 해당 모델의 가중치와 상태 복원
     model.load_state_dict(checkpoint)
-
-    print(f"모델 로드 완료: {checkpoint_path}")
 
     return model

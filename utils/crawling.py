@@ -22,18 +22,7 @@ def parse_html(driver, url):
         print(f"HTML 파싱 실패: {e}")
         return None
 
-
-
-# async def crawl_url(soup): 비동기로 나중에 수정 -> 테스트 위해서 잠시 빼둠
 def crawl_url(soup):
-    """
-    BeautifulSoup 객체에서 본문 데이터를 크롤링합니다.
-    Args:
-        soup (BeautifulSoup): 파싱된 HTML 데이터.
-        url (str): 크롤링할 URL.
-    Returns:
-        str: 크롤링된 본문 텍스트.
-    """
     try:
         if soup is None:
             raise ValueError("BeautifulSoup 객체가 None입니다.")

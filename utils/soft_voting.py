@@ -1,5 +1,3 @@
-# 모델 결과 값을 soft voting 하는 함수
-
 def soft_voting(paragraph_probabilities):
     total_real_prob = sum(p[0] for p in paragraph_probabilities)
     total_fake_prob = sum(p[1] for p in paragraph_probabilities)

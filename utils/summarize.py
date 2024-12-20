@@ -1,13 +1,5 @@
 import openai
-import os
-from dotenv import load_dotenv
-import json
-
 from aws_config import get_ssm_parameter
-
-# # .env 파일에서 API 키 로드
-# load_dotenv()
-# openai.api_key = os.getenv("OPENAI_API_KEY")  # API 키를 OpenAI 클라이언트에 설정
 
 # 백엔드 테스트 파라미터 경로
 openai_api_key = "/config/ktb22/OPENAI_API_KEY"
