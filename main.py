@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from routers import router  # 라우터 임포트
-from utils.task_logic import process_task
-from utils.shared import tasks
 
 # FastAPI 인스턴스 생성
 app = FastAPI()
@@ -21,6 +19,8 @@ async def say_hello(name: str):
 @app.post("/review-check/response")
 async def receive_response():
 
-    result = '!!!! got response !!!!!'
+    result = {
+        "message": "Result received. Thank you."
+    }
 
     return result

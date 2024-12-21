@@ -1,16 +1,9 @@
 import torch
 import os
-
-from transformers import BertModel, XLNetTokenizer
-from transformers import XLNetTokenizer  # BertTokenizer,
-
+from transformers import BertModel
 from kobert_tokenizer import KoBERTTokenizer
-
 from utils.load_model import load_model_from_checkpoint, BERTClassifier
 
-
-# 작업 처리 함수 : 비동기로 정의 (async)
-# 텍스트 기반 예측(분류) 함수
 def predict_text(model, processed_text, tokenizer, max_len=64):
     encoded_dict = tokenizer(
         [processed_text],
@@ -38,17 +31,13 @@ def predict_text(model, processed_text, tokenizer, max_len=64):
         )
 
     probabilities = torch.softmax(outputs, dim=1).cpu().numpy()
-    # print(f"Softmax probabilities: {probabilities}")
 
     real_prob = probabilities[0][0]
     fake_prob = probabilities[0][1]
-    # print(real_prob, fake_prob)
 
     return real_prob, fake_prob
 
 def load_model_and_tokenizer():
-    # checkpoint_path = os.path.join(os.getcwd(), "models/checkpoint_epoch_36.tar")
-
     # 모델 경로 설정
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 상위 디렉토리로 이동
     checkpoint_path = os.path.join(base_dir, "models", "checkpoint_epoch_6.pt")
@@ -56,7 +45,5 @@ def load_model_and_tokenizer():
     bert = BertModel.from_pretrained("skt/kobert-base-v1")  # BERT 모델 로드
     model = load_model_from_checkpoint(checkpoint_path, lambda dr_rate: BERTClassifier(bert, dr_rate=dr_rate))
     tokenizer = KoBERTTokenizer.from_pretrained("skt/kobert-base-v1")  # KoBERT 토크나이저 로드
-
-    print("print model & tokenizer ! : ", model, tokenizer)
 
     return model, tokenizer
