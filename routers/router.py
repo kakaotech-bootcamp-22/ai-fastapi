@@ -36,7 +36,7 @@ driver = webdriver.Chrome(
 driver.set_page_load_timeout(30)
 driver.implicitly_wait(10)
 
-@router.post("/")
+@router.post("")
 def process_review_request(request: ReviewCheckRequest):
     # 작업 ID로 받은 requestID 사용
     task_id = request.requestId
