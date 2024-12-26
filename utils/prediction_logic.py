@@ -1,3 +1,5 @@
+import logging
+
 from utils.summarize import generate_title_summary, generate_text_summary
 from utils.task_logic import process_task
 from utils.shared import tasks
@@ -7,11 +9,14 @@ from utils.preprocess import TextProcessor, split_text_into_paragraphs
 from utils.soft_voting import soft_voting
 
 def process_and_predict_from_url(task_id: str, url: str, driver):
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting process_and_predict_from_url for Task ID: {task_id}, URL: {url}")
     try:
         tasks[task_id]["status"] = "IN_PROGRESS"
         success = True  # 처리 성공 여부를 추적하는 플래그
 
         # 1. 크롤링 수행
+        logger.info("Starting crawling...")
         soup = parse_html(driver, url)
         if soup is None:
             tasks[task_id]["status"] = "FAILED"
@@ -20,6 +25,7 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
 
         raw_text = ""
         if success:
+            logger.info("Crawling complete.")
             raw_text = crawl_url(soup)
             if not raw_text:
                 tasks[task_id]["status"] = "FAILED"
@@ -27,6 +33,7 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
                 success = False
 
         # 2. 전처리 수행
+        logger.info("Starting preprocessing...")
         processed_text = ""
         title_summary = ""
         content_summary = ""
@@ -51,11 +58,13 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
 
         if success:
             try:
+                logger.info("Preprocessing complete.")
                 # 3. 텍스트를 문단으로 나누기
                 model, tokenizer = load_model_and_tokenizer()
                 paragraphs = split_text_into_paragraphs(processed_text, tokenizer)
 
                 # 4. 모델 로드 및 예측
+                logger.info("Starting model prediction...")
                 model.eval()
                 paragraph_probabilities = []
 
@@ -68,6 +77,7 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
 
                 # 성공적으로 처리됨
                 tasks[task_id]["status"] = "COMPLETED"
+                logger.info("Prediction complete.")
 
                 score = int(voting_results['real_probability'] * 100)
                 paragraph_prob_with_text = list(zip(paragraph_probabilities, paragraphs))
@@ -93,6 +103,7 @@ def process_and_predict_from_url(task_id: str, url: str, driver):
                 success = False
 
     except Exception as e:
+        logger.error(f"Error in process_and_predict_from_url: {e}")
         tasks[task_id]["status"] = "FAILED"
         tasks[task_id]["result"] = str(e)
 
